@@ -26,25 +26,21 @@ export const getStudentProgress = () =>
   pb.collection('student_progress').getFullList({ expand: 'package' })
 
 export const getOrCreateProgress = async (studentId: string, packageId: string) => {
-  try {
-    const records = await pb.collection('student_progress').getList(1, 1, {
-      filter: `student = "${studentId}" && package = "${packageId}"`,
-    })
+  const records = await pb.collection('student_progress').getList(1, 1, {
+    filter: `student = "${studentId}" && package = "${packageId}"`,
+  })
 
-    if (records.items.length > 0) {
-      return records.items[0]
-    }
-
-    return await pb.collection('student_progress').create({
-      student: studentId,
-      package: packageId,
-      status: 'not_started',
-      score: 0,
-      progress_percentage: 0,
-    })
-  } catch (error) {
-    throw error
+  if (records.items.length > 0) {
+    return records.items[0]
   }
+
+  return await pb.collection('student_progress').create({
+    student: studentId,
+    package: packageId,
+    status: 'not_started',
+    score: 0,
+    progress_percentage: 0,
+  })
 }
 
 export const updateProgress = (
