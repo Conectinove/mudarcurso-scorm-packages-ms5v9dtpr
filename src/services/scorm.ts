@@ -23,7 +23,7 @@ export const createScormPackage = async (data: {
 export const deleteScormPackage = (id: string) => pb.collection('scorm_packages').delete(id)
 
 export const getStudentProgress = () =>
-  pb.collection('student_progress').getFullList({ expand: 'package' })
+  pb.collection('student_progress').getFullList({ expand: 'package,student' })
 
 export const getOrCreateProgress = async (studentId: string, packageId: string) => {
   const records = await pb.collection('student_progress').getList(1, 1, {
