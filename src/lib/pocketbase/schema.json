@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-05T06:07:55.372Z",
+  "generatedAt": "2026-04-05T06:39:16.747Z",
   "collections": [
     {
       "name": "users",
@@ -220,6 +220,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -275,12 +281,77 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "instructor_feedback",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "student_comment",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
         "CREATE INDEX idx_act_sub_student ON activity_submissions (student)",
         "CREATE INDEX idx_act_sub_activity ON activity_submissions (activity)"
       ]
+    },
+    {
+      "name": "learning_tracks",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "name",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "activities",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "advanced_activities"
+        },
+        {
+          "name": "is_active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }
