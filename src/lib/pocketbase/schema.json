@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-05T05:12:07.961Z",
+  "generatedAt": "2026-04-05T05:45:20.557Z",
   "collections": [
     {
       "name": "users",
@@ -223,6 +223,64 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "activity_submissions",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && student = @request.auth.id",
+        "view": "@request.auth.id != '' && student = @request.auth.id",
+        "create": "@request.auth.id != '' && student = @request.auth.id",
+        "update": "@request.auth.id != '' && student = @request.auth.id",
+        "delete": "@request.auth.id != '' && student = @request.auth.id"
+      },
+      "fields": [
+        {
+          "name": "student",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "activity",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "advanced_activities"
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["pending", "completed", "reviewed"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_act_sub_student ON activity_submissions (student)",
+        "CREATE INDEX idx_act_sub_activity ON activity_submissions (activity)"
+      ]
     }
   ]
 }

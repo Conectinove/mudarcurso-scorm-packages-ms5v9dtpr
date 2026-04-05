@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
 import { Beaker, Settings, Activity } from 'lucide-react'
 import { getAdvancedActivities } from '@/services/advanced_activities'
 import { useRealtime } from '@/hooks/use-realtime'
 import type { RecordModel } from 'pocketbase'
+import { LabStudentView } from './LabStudentView'
+import { LabConfigView } from './LabConfigView'
 
 export function AdvancedLab() {
   const [activities, setActivities] = useState<RecordModel[]>([])
@@ -73,57 +74,19 @@ export function AdvancedLab() {
                 <Activity className="w-6 h-6 mb-3 animate-spin text-blue-500" />
                 Carregando atividades...
               </div>
-            ) : activities.length === 0 ? (
-              <div className="text-center py-12 text-gray-500 font-medium bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                Nenhuma atividade ativa no laboratório.
-              </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {activities.map((act) => (
-                  <div
-                    key={act.id}
-                    className="p-5 rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 hover:shadow-sm transition-all flex flex-col gap-3 group"
-                  >
-                    <div className="flex justify-between items-start">
-                      <span className="text-xs font-black text-gray-400 uppercase tracking-wider bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
-                        #{act.order_number}
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className="bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold border-0"
-                      >
-                        {act.type}
-                      </Badge>
-                    </div>
-                    <h4 className="font-bold text-gray-900 leading-tight mt-1 group-hover:text-blue-700 transition-colors">
-                      {act.title}
-                    </h4>
-                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-100/60">
-                      <span className="text-sm font-medium text-gray-500">Dificuldade</span>
-                      <Badge
-                        variant="outline"
-                        className="text-gray-600 font-bold border-gray-200 bg-white"
-                      >
-                        {act.difficulty}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <LabStudentView activities={activities} />
             )}
           </TabsContent>
 
           <TabsContent value="config" className="outline-none">
-            <div className="p-12 text-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50">
-              <div className="h-16 w-16 bg-white shadow-sm border border-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Settings className="w-8 h-8 text-gray-400" />
+            {loading ? (
+              <div className="flex justify-center py-12 text-gray-400">
+                <Activity className="w-6 h-6 animate-spin" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Configurações do Laboratório</h3>
-              <p className="text-gray-500 font-medium max-w-sm mx-auto leading-relaxed">
-                Opções de gerenciamento e configurações avançadas serão disponibilizadas aqui em
-                breve.
-              </p>
-            </div>
+            ) : (
+              <LabConfigView activities={activities} />
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
