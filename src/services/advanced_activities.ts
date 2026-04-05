@@ -7,6 +7,10 @@ export const getAdvancedActivities = async (): Promise<RecordModel[]> => {
   })
 }
 
+export const createAdvancedActivity = async (data: Partial<RecordModel>): Promise<RecordModel> => {
+  return pb.collection('advanced_activities').create(data)
+}
+
 export const updateAdvancedActivity = async (
   id: string,
   data: Partial<RecordModel>,

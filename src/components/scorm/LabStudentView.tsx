@@ -92,51 +92,65 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
           Nenhuma atividade ativa no laboratório no momento.
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {activeActivities.map((act) => {
-            const isCompleted = submissions.some((s) => s.activity === act.id)
-            return (
-              <div
-                key={act.id}
-                onClick={() => handleOpen(act)}
-                className="p-5 cursor-pointer rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200 hover:shadow-sm transition-all flex flex-col gap-3 group"
-              >
-                <div className="flex justify-between items-start">
-                  <span className="text-xs font-black text-gray-400 uppercase tracking-wider bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
-                    #{act.order_number}
-                  </span>
-                  <div className="flex gap-2">
-                    {isCompleted && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-green-100 text-green-700 font-bold border-0"
-                      >
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> OK
-                      </Badge>
-                    )}
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-700 font-bold border-0"
+        <div className="space-y-8">
+          {Object.entries(
+            activeActivities.reduce(
+              (acc, act) => {
+                const type = act.type || 'Outros'
+                if (!acc[type]) acc[type] = []
+                acc[type].push(act)
+                return acc
+              },
+              {} as Record<string, RecordModel[]>,
+            ),
+          ).map(([type, typeActivities]) => (
+            <div key={type} className="space-y-4">
+              <h4 className="text-lg font-black text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
+                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                {type}
+              </h4>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {typeActivities.map((act) => {
+                  const isCompleted = submissions.some((s) => s.activity === act.id)
+                  return (
+                    <div
+                      key={act.id}
+                      onClick={() => handleOpen(act)}
+                      className="p-5 cursor-pointer rounded-2xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-md transition-all flex flex-col gap-3 group"
                     >
-                      {act.type}
-                    </Badge>
-                  </div>
-                </div>
-                <h4 className="font-bold text-gray-900 leading-tight mt-1 group-hover:text-blue-700 transition-colors">
-                  {act.title}
-                </h4>
-                <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-100/60">
-                  <span className="text-sm font-medium text-gray-500">Dificuldade</span>
-                  <Badge
-                    variant="outline"
-                    className="text-gray-600 font-bold border-gray-200 bg-white"
-                  >
-                    {act.difficulty || 'Média'}
-                  </Badge>
-                </div>
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-black text-gray-400 uppercase tracking-wider bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
+                          #{act.order_number}
+                        </span>
+                        <div className="flex gap-2">
+                          {isCompleted && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-green-100 text-green-700 font-bold border-0 shadow-sm"
+                            >
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> OK
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-gray-900 leading-tight mt-1 group-hover:text-blue-700 transition-colors">
+                        {act.title}
+                      </h4>
+                      <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-100/60">
+                        <span className="text-sm font-medium text-gray-500">Dificuldade</span>
+                        <Badge
+                          variant="outline"
+                          className="text-gray-600 font-bold border-gray-200 bg-white"
+                        >
+                          {act.difficulty || 'Média'}
+                        </Badge>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       )}
 

@@ -36,9 +36,13 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Copy } from 'lucide-react'
 import { toast } from 'sonner'
-import { updateAdvancedActivity, deleteAdvancedActivity } from '@/services/advanced_activities'
+import {
+  updateAdvancedActivity,
+  deleteAdvancedActivity,
+  createAdvancedActivity,
+} from '@/services/advanced_activities'
 import type { RecordModel } from 'pocketbase'
 
 export function LabConfigView({ activities }: { activities: RecordModel[] }) {
@@ -79,6 +83,25 @@ export function LabConfigView({ activities }: { activities: RecordModel[] }) {
       setDeleting(null)
     } catch (e) {
       toast.error('Erro ao remover a atividade.')
+    }
+  }
+
+  const handleClone = async (act: RecordModel) => {
+    try {
+      const maxOrder = activities.reduce(
+        (max, a) => Math.max(max, typeof a.order_number === 'number' ? a.order_number : 0),
+        0,
+      )
+      await createAdvancedActivity({
+        title: `${act.title} (Cópia)`,
+        type: act.type,
+        difficulty: act.difficulty,
+        order_number: maxOrder + 1,
+        is_active: false,
+      })
+      toast.success('Atividade clonada com sucesso.')
+    } catch (e) {
+      toast.error('Erro ao clonar a atividade.')
     }
   }
 
@@ -137,8 +160,18 @@ export function LabConfigView({ activities }: { activities: RecordModel[] }) {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-8 w-8 text-green-600 hover:bg-green-50"
+                        onClick={() => handleClone(act)}
+                        title="Clonar"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8 text-blue-600 hover:bg-blue-50"
                         onClick={() => handleEdit(act)}
+                        title="Editar"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -147,6 +180,7 @@ export function LabConfigView({ activities }: { activities: RecordModel[] }) {
                         size="icon"
                         className="h-8 w-8 text-red-600 hover:bg-red-50"
                         onClick={() => setDeleting(act)}
+                        title="Remover"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
