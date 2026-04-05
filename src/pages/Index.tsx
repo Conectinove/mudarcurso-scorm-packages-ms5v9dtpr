@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label'
 import { StatCards } from '@/components/scorm/StatCards'
 import { StudentProgressModal } from '@/components/scorm/StudentProgressModal'
 import { PlayerSimulationModal } from '@/components/scorm/PlayerSimulationModal'
+import { AdvancedLab } from '@/components/scorm/AdvancedLab'
 
 export default function Index() {
   const { toast } = useToast()
@@ -421,6 +422,8 @@ export default function Index() {
           </Table>
         </Card>
       )}
+
+      <AdvancedLab />
 
       <StudentProgressModal
         open={studentsOpen}
