@@ -23,8 +23,66 @@ export function LabConfigStats({ activities }: { activities: RecordModel[] }) {
   }, [])
   useRealtime('activity_submissions', loadStats)
 
+  const totalSubmissions = submissions.length
+
+  // Calculate distribution of activity types among submissions
+  const typeDistribution = submissions.reduce(
+    (acc, sub) => {
+      const act = activities.find((a) => a.id === sub.activity)
+      const type = act?.type || 'Outros'
+      acc[type] = (acc[type] || 0) + 1
+      return acc
+    },
+    {} as Record<string, number>,
+  )
+
+  const sortedTypes = Object.entries(typeDistribution).sort((a, b) => b[1] - a[1])
+
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up">
+      <Card className="border-gray-100 shadow-sm bg-blue-50/30">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-8 items-center justify-between">
+            <div className="text-center md:text-left">
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">
+                Total de Submissões
+              </h3>
+              <p className="text-4xl font-black text-blue-900">{totalSubmissions}</p>
+              <p className="text-sm text-gray-500 mt-1">em todas as atividades</p>
+            </div>
+
+            <div className="flex-1 w-full max-w-xl">
+              <h4 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+                <Activity className="w-4 h-4 text-blue-500" /> Distribuição por Tipo
+              </h4>
+              <div className="space-y-3">
+                {sortedTypes.length > 0 ? (
+                  sortedTypes.map(([type, count]) => {
+                    const pct = Math.round((count / totalSubmissions) * 100)
+                    return (
+                      <div key={type} className="flex items-center gap-3">
+                        <span className="w-24 text-xs font-medium text-gray-600 truncate text-right">
+                          {type}
+                        </span>
+                        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span className="w-12 text-xs font-bold text-gray-900">{count}</span>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <p className="text-xs text-gray-500 italic">Nenhum dado disponível.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {activities.map((act) => {
           const actSubs = submissions.filter((s) => s.activity === act.id)

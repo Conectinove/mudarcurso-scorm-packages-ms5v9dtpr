@@ -18,11 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { CheckCircle2, MessageSquare, AlertCircle } from 'lucide-react'
+import { CheckCircle2, MessageSquare, AlertCircle, Award } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
 import { getMySubmissions, submitActivity } from '@/services/activity_submissions'
 import { getLearningTracks } from '@/services/learning_tracks'
+import { getMyCertificates, issueCertificate } from '@/services/certificates'
 import { useRealtime } from '@/hooks/use-realtime'
 import { cn } from '@/lib/utils'
 import type { RecordModel } from 'pocketbase'
@@ -35,14 +36,21 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
   const [selected, setSelected] = useState<RecordModel | null>(null)
   const [content, setContent] = useState('')
   const [studentComment, setStudentComment] = useState('')
+  const [certificates, setCertificates] = useState<RecordModel[]>([])
+  const [showCertDialog, setShowCertDialog] = useState<RecordModel | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   const loadData = async () => {
     if (!user) return
     try {
-      const [subs, trks] = await Promise.all([getMySubmissions(user.id), getLearningTracks()])
+      const [subs, trks, certs] = await Promise.all([
+        getMySubmissions(user.id),
+        getLearningTracks(),
+        getMyCertificates(user.id),
+      ])
       setSubmissions(subs)
       setTracks(trks.filter((t) => t.is_active))
+      setCertificates(certs)
     } catch (e) {
       console.error('Failed to load data', e)
     }
@@ -51,8 +59,10 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
   useEffect(() => {
     loadData()
   }, [user])
+
   useRealtime('activity_submissions', loadData)
   useRealtime('learning_tracks', loadData)
+  useRealtime('certificates', loadData)
 
   const trackObj = selectedTrack !== 'all' ? tracks.find((t) => t.id === selectedTrack) : null
   const activeActivities = activities.filter((a) => {
@@ -62,11 +72,30 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
   })
 
   const completedCount = activeActivities.filter((a) =>
-    submissions.some((s) => s.activity === a.id),
+    submissions.some((s) => s.activity === a.id && ['completed', 'reviewed'].includes(s.status)),
   ).length
   const progress = activeActivities.length
     ? Math.round((completedCount / activeActivities.length) * 100)
     : 0
+
+  // Automated Certificate Generation
+  useEffect(() => {
+    if (!user || selectedTrack === 'all' || !trackObj || activeActivities.length === 0) return
+
+    if (progress === 100) {
+      const hasCert = certificates.some((c) => c.track === trackObj.id)
+      if (!hasCert) {
+        issueCertificate(user.id, trackObj.id)
+          .then(() => {
+            toast.success(
+              `Parabéns! Você completou a trilha "${trackObj.name}". Certificado gerado!`,
+            )
+            loadData()
+          })
+          .catch((e) => console.error('Error issuing cert:', e))
+      }
+    }
+  }, [progress, selectedTrack, trackObj, certificates, user, activeActivities.length])
 
   const handleOpen = (act: RecordModel) => {
     const existing = submissions.find((s) => s.activity === act.id)
@@ -112,6 +141,17 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
             </SelectContent>
           </Select>
         </div>
+
+        {selectedTrack !== 'all' && certificates.some((c) => c.track === selectedTrack) && (
+          <Button
+            onClick={() =>
+              setShowCertDialog(certificates.find((c) => c.track === selectedTrack) || null)
+            }
+            className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white font-bold shadow-sm"
+          >
+            <Award className="w-4 h-4 mr-2" /> Certificado
+          </Button>
+        )}
       </div>
 
       <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -174,9 +214,15 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
                           {sub && (
                             <Badge
                               variant="secondary"
-                              className="bg-green-100 text-green-700 font-bold border-0 shadow-sm"
+                              className={cn(
+                                'font-bold border-0 shadow-sm',
+                                sub.status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-700'
+                                  : 'bg-green-100 text-green-700',
+                              )}
                             >
-                              <CheckCircle2 className="w-3 h-3 mr-1" /> OK
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
+                              {sub.status === 'pending' ? 'Enviado' : 'OK'}
                             </Badge>
                           )}
                         </div>
@@ -273,6 +319,38 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
               {submitting ? 'Enviando...' : 'Enviar Atividade'}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!showCertDialog} onOpenChange={(o) => !o && setShowCertDialog(null)}>
+        <DialogContent className="sm:max-w-[600px] text-center p-8 border-4 border-double border-yellow-200 bg-gradient-to-b from-white to-yellow-50/30">
+          <div className="flex flex-col items-center space-y-6">
+            <Award className="w-20 h-20 text-yellow-500 mb-2 drop-shadow-sm" />
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black text-gray-900 tracking-tight uppercase">
+                Certificado de Conclusão
+              </h2>
+              <p className="text-gray-500">Este certificado é orgulhosamente apresentado a</p>
+            </div>
+
+            <h3 className="text-4xl font-black text-blue-900 border-b-2 border-yellow-200 pb-2 w-full max-w-sm">
+              {user?.name || user?.email || 'Estudante'}
+            </h3>
+
+            <p className="text-gray-600">
+              Por concluir com excelência todos os requisitos da trilha:
+            </p>
+            <h4 className="text-xl font-bold text-gray-800">
+              {showCertDialog?.expand?.track?.name || 'Trilha Avançada'}
+            </h4>
+
+            <div className="flex justify-between w-full mt-8 pt-6 border-t border-gray-100 text-sm font-medium text-gray-400">
+              <span>
+                Data: {new Date(showCertDialog?.created || Date.now()).toLocaleDateString('pt-BR')}
+              </span>
+              <span>Código: {showCertDialog?.certificate_code}</span>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

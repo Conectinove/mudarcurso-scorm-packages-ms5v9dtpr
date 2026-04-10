@@ -3,7 +3,8 @@ import { LabConfigActivities } from './LabConfigActivities'
 import { LabConfigTracks } from './LabConfigTracks'
 import { LabConfigStats } from './LabConfigStats'
 import type { RecordModel } from 'pocketbase'
-import { Settings2, ListTree, BarChart3 } from 'lucide-react'
+import { Settings2, ListTree, BarChart3, MessageSquareCheck } from 'lucide-react'
+import { LabConfigReviews } from './LabConfigReviews'
 
 export function LabConfigView({ activities }: { activities: RecordModel[] }) {
   return (
@@ -23,6 +24,12 @@ export function LabConfigView({ activities }: { activities: RecordModel[] }) {
             <ListTree className="w-4 h-4" /> Trilhas
           </TabsTrigger>
           <TabsTrigger
+            value="reviews"
+            className="rounded-lg py-2.5 px-5 data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium gap-2 whitespace-nowrap"
+          >
+            <MessageSquareCheck className="w-4 h-4" /> Avaliações
+          </TabsTrigger>
+          <TabsTrigger
             value="stats"
             className="rounded-lg py-2.5 px-5 data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium gap-2 whitespace-nowrap"
           >
@@ -34,6 +41,9 @@ export function LabConfigView({ activities }: { activities: RecordModel[] }) {
         </TabsContent>
         <TabsContent value="tracks" className="m-0 focus-visible:outline-none">
           <LabConfigTracks activities={activities} />
+        </TabsContent>
+        <TabsContent value="reviews" className="m-0 focus-visible:outline-none">
+          <LabConfigReviews />
         </TabsContent>
         <TabsContent value="stats" className="m-0 focus-visible:outline-none">
           <LabConfigStats activities={activities} />
