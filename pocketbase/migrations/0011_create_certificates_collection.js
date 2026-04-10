@@ -1,5 +1,6 @@
 migrate(
   (app) => {
+    const users = app.findCollectionByNameOrId('_pb_users_auth_')
     const learningTracks = app.findCollectionByNameOrId('learning_tracks')
 
     const collection = new Collection({
@@ -15,7 +16,7 @@ migrate(
           name: 'student',
           type: 'relation',
           required: true,
-          collectionId: '_pb_users_auth_',
+          collectionId: users.id,
           cascadeDelete: true,
           maxSelect: 1,
         },
