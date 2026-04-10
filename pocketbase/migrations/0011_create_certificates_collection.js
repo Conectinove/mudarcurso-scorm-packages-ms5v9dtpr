@@ -1,5 +1,7 @@
 migrate(
   (app) => {
+    const learningTracks = app.findCollectionByNameOrId('learning_tracks')
+
     const collection = new Collection({
       name: 'certificates',
       type: 'base',
@@ -21,7 +23,7 @@ migrate(
           name: 'track',
           type: 'relation',
           required: true,
-          collectionId: 'learning_tracks',
+          collectionId: learningTracks.id,
           cascadeDelete: true,
           maxSelect: 1,
         },
