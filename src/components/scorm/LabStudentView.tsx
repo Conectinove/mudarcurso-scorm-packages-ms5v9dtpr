@@ -23,7 +23,7 @@ import { toast } from 'sonner'
 import { useAuth } from '@/hooks/use-auth'
 import { getMySubmissions, submitActivity } from '@/services/activity_submissions'
 import { getLearningTracks } from '@/services/learning_tracks'
-import { getMyCertificates, issueCertificate } from '@/services/certificates'
+import { getMyCertificates } from '@/services/certificates'
 import { useRealtime } from '@/hooks/use-realtime'
 import { StudentCertificates } from './StudentCertificates'
 import { cn } from '@/lib/utils'
@@ -68,7 +68,14 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
     loadData()
   })
   useRealtime('learning_tracks', loadData)
-  useRealtime('certificates', loadData)
+  useRealtime('certificates', (e) => {
+    if (e.action === 'create' && e.record.student === user?.id) {
+      toast.success(
+        'Parabéns! Você concluiu uma trilha. Seu certificado foi gerado automaticamente!',
+      )
+    }
+    loadData()
+  })
 
   const trackObj = selectedTrack !== 'all' ? tracks.find((t) => t.id === selectedTrack) : null
   const activeActivities = activities.filter((a) => {
@@ -83,25 +90,6 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
   const progress = activeActivities.length
     ? Math.round((completedCount / activeActivities.length) * 100)
     : 0
-
-  // Automated Certificate Generation
-  useEffect(() => {
-    if (!user || selectedTrack === 'all' || !trackObj || activeActivities.length === 0) return
-
-    if (progress === 100) {
-      const hasCert = certificates.some((c) => c.track === trackObj.id)
-      if (!hasCert) {
-        issueCertificate(user.id, trackObj.id)
-          .then(() => {
-            toast.success(
-              `Parabéns! Você completou a trilha "${trackObj.name}". Certificado gerado!`,
-            )
-            loadData()
-          })
-          .catch((e) => console.error('Error issuing cert:', e))
-      }
-    }
-  }, [progress, selectedTrack, trackObj, certificates, user, activeActivities.length])
 
   const handleOpen = (act: RecordModel) => {
     const existing = submissions.find((s) => s.activity === act.id)

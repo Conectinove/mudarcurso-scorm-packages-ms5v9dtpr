@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-18T22:52:51.361Z",
+  "generatedAt": "2026-07-18T23:09:09.935Z",
   "collections": [
     {
       "name": "users",
@@ -237,7 +237,7 @@
         "list": "@request.auth.id != ''",
         "view": "@request.auth.id != ''",
         "create": "@request.auth.id != '' && student = @request.auth.id",
-        "update": "@request.auth.id != '' && student = @request.auth.id",
+        "update": "@request.auth.id != ''",
         "delete": "@request.auth.id != '' && student = @request.auth.id"
       },
       "fields": [

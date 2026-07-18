@@ -17,13 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Clock, TrendingDown } from 'lucide-react'
+import { Clock, TrendingDown, Target, AlertTriangle } from 'lucide-react'
 import type { RecordModel } from 'pocketbase'
 
 const chartConfig: ChartConfig = {
   hours: { label: 'Horas', color: 'hsl(221, 83%, 53%)' },
   started: { label: 'Iniciados', color: 'hsl(215, 28%, 67%)' },
   completed: { label: 'Concluídos', color: 'hsl(142, 71%, 45%)' },
+  rate: { label: 'Taxa %', color: 'hsl(142, 71%, 45%)' },
 }
 
 export function LabConfigAnalytics({ activities }: { activities: RecordModel[] }) {
@@ -47,27 +48,35 @@ export function LabConfigAnalytics({ activities }: { activities: RecordModel[] }
   useRealtime('activity_submissions', loadData)
   useRealtime('learning_tracks', loadData)
 
-  const completionByType = activities.reduce(
+  const statsByType = activities.reduce(
     (acc, act) => {
       const type = act.type || 'Outros'
-      if (!acc[type]) acc[type] = { total: 0, count: 0 }
-      const subs = submissions.filter(
-        (s) => s.activity === act.id && (s.status === 'completed' || s.status === 'reviewed'),
-      )
+      if (!acc[type]) acc[type] = { hoursTotal: 0, hoursCount: 0, subsTotal: 0, subsDone: 0 }
+      const subs = submissions.filter((s) => s.activity === act.id)
       subs.forEach((s) => {
         const hours =
           (new Date(s.updated).getTime() - new Date(s.created).getTime()) / (1000 * 60 * 60)
-        acc[type].total += hours
-        acc[type].count += 1
+        acc[type].hoursTotal += hours
+        acc[type].hoursCount += 1
+        acc[type].subsTotal += 1
+        if (s.status === 'completed' || s.status === 'reviewed') acc[type].subsDone += 1
       })
       return acc
     },
-    {} as Record<string, { total: number; count: number }>,
+    {} as Record<
+      string,
+      { hoursTotal: number; hoursCount: number; subsTotal: number; subsDone: number }
+    >,
   )
 
-  const completionData = Object.entries(completionByType).map(([type, data]) => ({
+  const completionData = Object.entries(statsByType).map(([type, d]) => ({
     type,
-    hours: data.count > 0 ? Math.round((data.total / data.count) * 10) / 10 : 0,
+    hours: d.hoursCount > 0 ? Math.round((d.hoursTotal / d.hoursCount) * 10) / 10 : 0,
+  }))
+
+  const successData = Object.entries(statsByType).map(([type, d]) => ({
+    type,
+    rate: d.subsTotal > 0 ? Math.round((d.subsDone / d.subsTotal) * 100) : 0,
   }))
 
   const trackObj = selectedTrack !== 'all' ? tracks.find((t) => t.id === selectedTrack) : null
@@ -106,6 +115,26 @@ export function LabConfigAnalytics({ activities }: { activities: RecordModel[] }
               <YAxis tickLine={false} axisLine={false} fontSize={12} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="hours" fill="hsl(221, 83%, 53%)" radius={4} />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="border-gray-100 shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Target className="w-5 h-5 text-green-600" /> Taxa de Sucesso por Tipo
+          </CardTitle>
+          <CardDescription>Percentual de submissões concluídas ou revisadas</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            <BarChart data={successData}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="type" tickLine={false} axisLine={false} fontSize={12} />
+              <YAxis tickLine={false} axisLine={false} fontSize={12} domain={[0, 100]} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="rate" fill="hsl(142, 71%, 45%)" radius={4} />
             </BarChart>
           </ChartContainer>
         </CardContent>
@@ -160,7 +189,12 @@ export function LabConfigAnalytics({ activities }: { activities: RecordModel[] }
                 key={i}
                 className="flex items-center justify-between text-sm py-1.5 border-b border-gray-50 last:border-0"
               >
-                <span className="font-medium text-gray-700 truncate flex-1 mr-2">{d.name}</span>
+                <span className="font-medium text-gray-700 truncate flex-1 mr-2 flex items-center gap-1.5">
+                  {d.rate < 50 && d.started > 0 && (
+                    <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                  )}
+                  {d.name}
+                </span>
                 <div className="flex items-center gap-4">
                   <span className="text-gray-500">
                     {d.completed}/{d.started}

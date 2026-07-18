@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,13 +15,24 @@ export function StudentCertificates({
   user: any
 }) {
   const [selected, setSelected] = useState<RecordModel | null>(null)
+  const location = useLocation()
+  const isCertPage = location.pathname === '/certificates'
 
   return (
     <Card className="border-gray-100 shadow-sm">
       <CardHeader>
-        <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <Award className="w-5 h-5 text-yellow-500" /> Meus Certificados
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Award className="w-5 h-5 text-yellow-500" /> Meus Certificados
+          </CardTitle>
+          {!isCertPage && certificates.length > 0 && (
+            <Link to="/certificates">
+              <Button variant="outline" size="sm">
+                Ver Todos
+              </Button>
+            </Link>
+          )}
+        </div>
         <CardDescription>
           Certificados conquistados ao concluir trilhas de aprendizado
         </CardDescription>
