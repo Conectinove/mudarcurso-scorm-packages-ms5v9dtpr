@@ -17,6 +17,7 @@ export const issueCertificate = async (userId: string, trackId: string): Promise
   return pb.collection('certificates').create({
     student: userId,
     track: trackId,
+    issue_date: new Date().toISOString().split('T')[0],
     certificate_code: code,
   })
 }

@@ -6,9 +6,9 @@ migrate(
     const collection = new Collection({
       name: 'certificates',
       type: 'base',
-      listRule: "@request.auth.id != ''",
-      viewRule: "@request.auth.id != ''",
-      createRule: "@request.auth.id != ''",
+      listRule: "@request.auth.id != '' && student = @request.auth.id",
+      viewRule: "@request.auth.id != '' && student = @request.auth.id",
+      createRule: "@request.auth.id != '' && student = @request.auth.id",
       updateRule: "@request.auth.id != ''",
       deleteRule: "@request.auth.id != ''",
       fields: [
@@ -28,11 +28,16 @@ migrate(
           cascadeDelete: true,
           maxSelect: 1,
         },
+        { name: 'issue_date', type: 'date', required: true },
         { name: 'certificate_code', type: 'text', required: true },
         { name: 'created', type: 'autodate', onCreate: true, onUpdate: false },
         { name: 'updated', type: 'autodate', onCreate: true, onUpdate: true },
       ],
-      indexes: ['CREATE UNIQUE INDEX idx_cert_code ON certificates (certificate_code)'],
+      indexes: [
+        'CREATE UNIQUE INDEX idx_cert_code ON certificates (certificate_code)',
+        'CREATE INDEX idx_cert_student ON certificates (student)',
+        'CREATE INDEX idx_cert_track ON certificates (track)',
+      ],
     })
     app.save(collection)
   },

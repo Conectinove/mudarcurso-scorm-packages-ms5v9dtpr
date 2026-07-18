@@ -6,6 +6,7 @@ import { getAllSubmissions } from '@/services/activity_submissions'
 import { useRealtime } from '@/hooks/use-realtime'
 import type { RecordModel } from 'pocketbase'
 import { Activity, CheckCircle, Clock } from 'lucide-react'
+import { LabConfigAnalytics } from './LabConfigAnalytics'
 
 export function LabConfigStats({ activities }: { activities: RecordModel[] }) {
   const [submissions, setSubmissions] = useState<RecordModel[]>([])
@@ -40,6 +41,7 @@ export function LabConfigStats({ activities }: { activities: RecordModel[] }) {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
+      <LabConfigAnalytics activities={activities} />
       <Card className="border-gray-100 shadow-sm bg-blue-50/30">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-8 items-center justify-between">

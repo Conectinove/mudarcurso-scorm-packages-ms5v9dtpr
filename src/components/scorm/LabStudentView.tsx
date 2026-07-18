@@ -25,6 +25,7 @@ import { getMySubmissions, submitActivity } from '@/services/activity_submission
 import { getLearningTracks } from '@/services/learning_tracks'
 import { getMyCertificates, issueCertificate } from '@/services/certificates'
 import { useRealtime } from '@/hooks/use-realtime'
+import { StudentCertificates } from './StudentCertificates'
 import { cn } from '@/lib/utils'
 import type { RecordModel } from 'pocketbase'
 
@@ -60,7 +61,12 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
     loadData()
   }, [user])
 
-  useRealtime('activity_submissions', loadData)
+  useRealtime('activity_submissions', (e) => {
+    if (e.action === 'update' && e.record.status === 'reviewed' && e.record.student === user?.id) {
+      toast.success('Sua submissão foi avaliada! Confira o feedback do instrutor.')
+    }
+    loadData()
+  })
   useRealtime('learning_tracks', loadData)
   useRealtime('certificates', loadData)
 
@@ -251,6 +257,8 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
         </div>
       )}
 
+      <StudentCertificates certificates={certificates} user={user} />
+
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
           <DialogHeader className="p-6 pb-4 border-b border-gray-100 shrink-0">
@@ -346,7 +354,10 @@ export function LabStudentView({ activities }: { activities: RecordModel[] }) {
 
             <div className="flex justify-between w-full mt-8 pt-6 border-t border-gray-100 text-sm font-medium text-gray-400">
               <span>
-                Data: {new Date(showCertDialog?.created || Date.now()).toLocaleDateString('pt-BR')}
+                Data:{' '}
+                {new Date(
+                  showCertDialog?.issue_date || showCertDialog?.created || Date.now(),
+                ).toLocaleDateString('pt-BR')}
               </span>
               <span>Código: {showCertDialog?.certificate_code}</span>
             </div>

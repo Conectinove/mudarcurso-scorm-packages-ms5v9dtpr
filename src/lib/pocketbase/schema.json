@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-10T18:13:27.902Z",
+  "generatedAt": "2026-07-18T22:52:51.361Z",
   "collections": [
     {
       "name": "users",
@@ -234,8 +234,8 @@
       "name": "activity_submissions",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != '' && student = @request.auth.id",
-        "view": "@request.auth.id != '' && student = @request.auth.id",
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
         "create": "@request.auth.id != '' && student = @request.auth.id",
         "update": "@request.auth.id != '' && student = @request.auth.id",
         "delete": "@request.auth.id != '' && student = @request.auth.id"
@@ -352,6 +352,64 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "certificates",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && student = @request.auth.id",
+        "view": "@request.auth.id != '' && student = @request.auth.id",
+        "create": "@request.auth.id != '' && student = @request.auth.id",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "student",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "track",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "learning_tracks"
+        },
+        {
+          "name": "issue_date",
+          "type": "date",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "certificate_code",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_cert_code ON certificates (certificate_code)",
+        "CREATE INDEX idx_cert_student ON certificates (student)",
+        "CREATE INDEX idx_cert_track ON certificates (track)"
+      ]
     }
   ]
 }
